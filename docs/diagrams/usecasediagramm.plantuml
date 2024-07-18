@@ -1,0 +1,38 @@
+@startuml usecases
+
+!define RECTANGLE class
+left to right direction
+
+actor "Пользователь" as User
+
+rectangle "Сервис по работе с заметками" {
+    package "Работа с заметками" {
+        usecase "Создание заметки" as UC_CreateNote
+        usecase "Просмотр списка заметок" as UC_ViewNotes
+        usecase "Просмотр конкретной заметки" as UC_ViewNote
+        usecase "Редактирование заметки" as UC_EditNote
+        usecase "Изменение статуса заметки" as UC_ChangeStatus
+        usecase "Удаление заметки" as UC_DeleteNote
+    }
+
+    usecase "Регистрация" as UC_Register
+    usecase "Авторизация" as UC_Login
+    
+}
+
+User --> UC_Register
+User --> UC_Login
+User --> UC_CreateNote
+User --> UC_ViewNotes
+User --> UC_ViewNote
+User --> UC_EditNote
+User --> UC_ChangeStatus
+User --> UC_DeleteNote
+
+UC_EditNote .> UC_ViewNote: extend
+UC_ChangeStatus .> UC_ViewNote: extend
+UC_DeleteNote .up.> UC_ViewNote: extend
+
+"Работа с заметками" .up.> UC_Login : include
+
+@enduml
