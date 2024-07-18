@@ -1,0 +1,278 @@
+openapi: 3.0.1
+info:
+  title: Note Management Service
+  description: API для управления заметками
+  version: 1.0.0
+servers:
+  - url: https://api.noteservice.com/v1
+
+paths:
+  /register:
+    post:
+      summary: Регистрация пользователя
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                login:
+                  type: string
+                  example: user123
+                password:
+                  type: string
+                  example: strongpassword
+              required:
+                - login
+                - password
+      responses:
+        '201':
+          description: Успешная регистрация
+        '400':
+          description: Ошибка валидации данных
+
+  /login:
+    post:
+      summary: Авторизация пользователя
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                login:
+                  type: string
+                  example: user123
+                password:
+                  type: string
+                  example: strongpassword
+              required:
+                - login
+                - password
+      responses:
+        '200':
+          description: Успешная авторизация
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9
+        '401':
+          description: Неправильный логин или пароль
+
+  /notes:
+    post:
+      summary: Создание заметки
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  example: Моя заметка
+                description:
+                  type: string
+                  example: Это описание моей заметки
+                status:
+                  $ref: '#/components/schemas/NoteStatus'
+              required:
+                - title
+                - description
+      responses:
+        '201':
+          description: Заметка успешно создана
+        '400':
+          description: Ошибка валидации данных
+
+    get:
+      summary: Просмотр списка заметок
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/NoteStatus'
+          description: Фильтрация по статусу
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+          description: Номер страницы для пагинации
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 10
+          description: Количество заметок на странице
+      responses:
+        '200':
+          description: Список заметок
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalCount:
+                    type: integer
+                    example: 100
+                  page:
+                    type: integer
+                    example: 1
+                  pageSize:
+                    type: integer
+                    example: 10
+                  notes:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          example: 1
+                        title:
+                          type: string
+                          example: Моя заметка
+                        status:
+                          $ref: '#/components/schemas/NoteStatus'
+
+  /notes/{id}:
+    get:
+      summary: Просмотр конкретной заметки
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID заметки
+      responses:
+        '200':
+          description: Информация о заметке
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: 1
+                  title:
+                    type: string
+                    example: Моя заметка
+                  description:
+                    type: string
+                    example: Это описание моей заметки
+                  status:
+                    $ref: '#/components/schemas/NoteStatus'
+        '404':
+          description: Заметка не найдена
+
+    put:
+      summary: Редактирование заметки
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID заметки
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  example: Обновленная заметка
+                description:
+                  type: string
+                  example: Это обновленное описание моей заметки
+                status:
+                  $ref: '#/components/schemas/NoteStatus'
+              required:
+                - title
+                - description
+                - status
+      responses:
+        '200':
+          description: Заметка успешно обновлена
+        '404':
+          description: Заметка не найдена
+
+    patch:
+      summary: Изменение статуса заметки
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID заметки
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  $ref: '#/components/schemas/NoteStatus'
+              required:
+                - status
+      responses:
+        '200':
+          description: Статус заметки успешно обновлен
+        '404':
+          description: Заметка не найдена
+
+    delete:
+      summary: Удаление заметки
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID заметки
+      responses:
+        '204':
+          description: Заметка успешно удалена
+        '404':
+          description: Заметка не найдена
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    NoteStatus:
+      type: string
+      enum: [актуальна, архивная]
+
+security:
+  - bearerAuth: []
